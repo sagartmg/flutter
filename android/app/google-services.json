@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "386152264530",
+    "firebase_url": "https://expiry-c76f8.firebaseio.com",
+    "project_id": "expiry-c76f8",
+    "storage_bucket": "expiry-c76f8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386152264530:android:fd12ef0a9ff1cec87c808b",
+        "android_client_info": {
+          "package_name": "com.example.expiry"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "386152264530-d0b0afkf6ds9ja4jnnd2h3kkoc32jbgc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfz4CApoasekiR9EUhRFFhOBMO-lVH7X0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "386152264530-d0b0afkf6ds9ja4jnnd2h3kkoc32jbgc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
