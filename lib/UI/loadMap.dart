@@ -21,6 +21,12 @@ class _LoadMapState extends State<LoadMap> {
       CameraPosition(target: LatLng(24.903623, 67.198367));
 
   final List<Marker> markers = [];
+  final Set all_location_map =Set();
+   List final_sorted_locations =[];
+
+
+
+  List differencesInRadius =[];
   Location location = Location();
 
   UserLocation _currentPostion;
@@ -31,13 +37,15 @@ class _LoadMapState extends State<LoadMap> {
   void initState() {
     super.initState();
 
-    positionSubscription = location.onLocationChanged
+    positionSubscription =  location.onLocationChanged
         .handleError((onError) => print(onError))
         .listen((streameddata) => setState(() {
               _currentPostion = UserLocation(
                   latitude: streameddata.latitude,
                   longitude: streameddata.longitude);
             }));
+
+    // _myLocation();
   }
 
   @override
@@ -57,20 +65,23 @@ class _LoadMapState extends State<LoadMap> {
           draggable: true,
           onTap: () {
             print("marker tap");
+            //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it 
           },
+
           markerId: MarkerId(id.toString())));
     });
   }
 
   _onMapCreated(GoogleMapController controller) {
     _controller = controller;
+    _myLocation();
   }
 
   _myLocation() {
     _controller.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
-          target: LatLng(_currentPostion.latitude, _currentPostion.longitude),
+          target: LatLng(_currentPostion==null?24.903623:_currentPostion.latitude, _currentPostion==null?67.198367:_currentPostion.longitude),
           zoom: 15,
         ),
       ),
@@ -137,14 +148,38 @@ class _LoadMapState extends State<LoadMap> {
       Positioned(
         child: RaisedButton(
           onPressed: () {
-            var marker1 = markers[0];
-            double distance = Diff().distanceBetween(
+            // var marker1 = markers[0];
+            // double distance = Diff().distanceBetween(
+            //     _currentPostion.latitude,
+            //     _currentPostion.longitude,
+            //     markers[0].position.latitude,
+            //     markers[0].position.longitude);
+
+            // print(distance);
+          all_location_map.clear();
+
+          markers.forEach((element) { 
+             double radius_difference = Diff().distanceBetween(
                 _currentPostion.latitude,
                 _currentPostion.longitude,
-                markers[0].position.latitude,
-                markers[0].position.longitude);
+                element.position.latitude,
+                element.position.longitude);
 
-            print(distance);
+
+                differencesInRadius.add(radius_difference);
+
+                all_location_map.add({"location":element,"radius":radius_difference});
+
+            
+
+
+          });
+            print(all_location_map.length);
+
+            final_sorted_locations =  all_location_map.where((element) => element['radius']<=5000).toList();
+            print("finally $final_sorted_locations");
+            print('finalsortedlocations",${final_sorted_locations.length}');
+
           },
           child: Text('markers within radius '),
         ),
