@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "889337009674",
+    "firebase_url": "https://maddat.firebaseio.com",
+    "project_id": "maddat",
+    "storage_bucket": "maddat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:889337009674:android:f9f2e8b7cc3aa5480171f3",
+        "android_client_info": {
+          "package_name": "com.example.maddat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "889337009674-a5b6qtmcc4d7hbkhb4u71cb8hef6tg5s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxLw8dSY3bPVBloEXL5kyCBXYMdB5WW9U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "889337009674-a5b6qtmcc4d7hbkhb4u71cb8hef6tg5s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
