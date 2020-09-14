@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maddat/UI/Hood/loadMarkers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoadMap extends StatefulWidget {
   @override
@@ -31,6 +32,24 @@ class _LoadMapState extends State<LoadMap> {
 
   StreamSubscription<LocationData> positionSubscription;
 
+  //  LoadMarkers.fetchData();
+  var documents = LoadMarkers.documents;
+  CollectionReference cf = Firestore.instance.collection('problems');
+  var firebase_document_outside1;
+// getting data from firestore. 
+  Future<dynamic> getData()async{
+    // firebase_document_outside1 = await cf.get().then<dynamic>((DocumentSnapshot snapshot)async{
+    //  return snapshot.data;
+    // });
+    firebase_document_outside1 = await Firestore.instance.collection('problems').getDocuments();
+
+    print(firebase_document_outside1);
+    var list1 = firebase_document_outside1.documents;
+    print(list1[0].data);
+    print("firebase_doudment outside 1");
+  }
+  // end of getting data from firestroe. 
+
   @override
   void initState() {
     super.initState();
@@ -42,8 +61,11 @@ class _LoadMapState extends State<LoadMap> {
                   latitude: streameddata.latitude,
                   longitude: streameddata.longitude);
             }));
+    // load_markers();
+    getData();
+    addMarker_again(27.735994237159627, 85.28792303055525);
 
-    // _myLocation();
+    // todo  load markers async wait and then mark in map.
   }
 
   @override
@@ -55,12 +77,29 @@ class _LoadMapState extends State<LoadMap> {
 
   addMarker(cordinate) {
     int id = Random().nextInt(100);
+    // CoordinateLatlng clng =
 
     setState(() {
       //todo on tap of marker show details
       markers.add(Marker(
-
           position: cordinate,
+          draggable: true,
+          onTap: () {
+            print("marker tap");
+            //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
+          },
+          markerId: MarkerId(id.toString())));
+    });
+  }
+
+  addMarker_again(latitude, lognitude) {
+    int id = Random().nextInt(100);
+    // CoordinateLatlng clng =
+
+    setState(() {
+      //todo on tap of marker show details
+      markers.add(Marker(
+          position: LatLng(latitude, lognitude),
           draggable: true,
           onTap: () {
             print("marker tap");
@@ -72,7 +111,7 @@ class _LoadMapState extends State<LoadMap> {
 
   _onMapCreated(GoogleMapController controller) {
     _controller = controller;
-    _myLocation();
+    // _myLocation();
   }
 
   _myLocation() {
@@ -90,32 +129,51 @@ class _LoadMapState extends State<LoadMap> {
 
   TextEditingController title = new TextEditingController();
   TextEditingController description = new TextEditingController();
-  Map<String,dynamic> to_be_saved;
+  Map<String, dynamic> to_be_saved;
   var problem_location_latitude;
   var problem_location_longitude;
-    var from_alert_dialog = 0;
+  var from_alert_dialog = 0;
 
-
-  changeAlertDialogStatus(){
-    // set
-
-    // ale
+  changeAlertDialogStatus() {
     setState(() {
-    from_alert_dialog=1;
-
-
-      
+      from_alert_dialog = 1;
     });
   }
-  updateProblemLocations(lat, long){
+
+  updateProblemLocations(lat, long) {
     setState(() {
-      problem_location_latitude=lat;
+      problem_location_latitude = lat;
       problem_location_longitude = long;
     });
   }
 
+  var firebase_document_outside;
 
+  load_markers() async {
+    print("load_markers called out");
+    //  todo wait til firebase dta has been extracted.
+    // firebase_document_outside = await StreamBuilder(
+    //     stream: cf.snapshots(),
+    //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+    //       if (snapshot.hasData) {
+    //         firebase_document_outside = snapshot.data.documents;
+    //         print("firebase_snapshot_saved");
 
+    //         return Text(
+    //             'streambuilder snapshot length ,${snapshot.data.documents.length}');
+    //       }
+    //     });
+
+    if (firebase_document_outside != null) {
+      print(
+          "load_markers called inside firebase document oouside. ,${firebase_document_outside}");
+
+      firebase_document_outside.forEach((element) => {
+            addMarker_again(element.data['location_latitude'],
+                element.data['location_longitude'])
+          });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,115 +192,103 @@ class _LoadMapState extends State<LoadMap> {
 
     bool default_checkbox_value = false;
 
-   
-
-
-    Future<dynamic> show_dialog(){
-
+    Future<dynamic> show_dialog() {
       return showDialog(
-                context: context,
-                builder: (context) {
-                  bool checkdata =false;
+        context: context,
+        builder: (context) {
+          bool checkdata = false;
 
-                  return AlertDialog(title: Text("data"), actions: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 700,
-                          child: TextField(
-                            controller: title,
-                            decoration: InputDecoration(hintText: "Title"),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 300,
-                          child: TextField(
-                            controller: description,
-                            decoration: InputDecoration(hintText: "desciption"),
-                          ),
-                        ),
-                        Text('chosse location'),
-                        Row(
-                          children: [
-                            FlatButton(
-                                onPressed: () {
-                                  print(from_alert_dialog);
-                                problem_location_latitude = _currentPostion.latitude;
-                                problem_location_longitude = _currentPostion.longitude;
-                                  print(problem_location_latitude);
-                                  print(problem_location_longitude);
-
-                                 
-                                },
-                                child: Text("current loaction")),
-                            FlatButton(
-                                onPressed: () {
-                                  changeAlertDialogStatus();
-                                  print(from_alert_dialog);
-                                  // todo: it is 1 but as soon as navigator.pop context..it is again set to default ...why>??
-                                  Navigator.pop(context);
-                                  // first choose from map,set the marker and again show alertdialog depending upon from alertdialog. 
-
-                                // todo then from the last marker array extract latitiude and longitude as problems latlang. 
-                                //todo: why making chnage inside alert dialog, and going outside, it reverts to original state...why??
-                                            // print(markers.len);
-                                           
-
-
-                                },
-                                child: Text("choose form map")),
-                          ],
-                        ),
-                       
-                        Row(
-                          children: [
-                            StatefulBuilder(
-                              builder: (BuildContext context, StateSetter setState){
-                                print("satatefulBuilder");
-                                return Checkbox(
-                                onChanged: (bool value) {
-                                  print(value);
-                                  setState(() {
-                                    default_checkbox_value = value;
-                                  });
-                                },
-                                value: default_checkbox_value, //default_check_vlaue
-                              );
-                              }
-                                                          
-                            ),
-                            Text("include your phone number")
-                          ],
-                        ),
-                        RaisedButton(
-                            onPressed: () {}, child: Text('pick images')),
-                        RaisedButton(onPressed: () {
-                          print(markers);
-                          setState(() {
-                            to_be_saved={
-                              "title":title.text,
-                              "description":description.text,
-                              "location_latitude":  problem_location_latitude,
-                              "location_longitude":  problem_location_longitude,
-                              "phone_number":default_checkbox_value
-
-                            };
-                            from_alert_dialog=0;
-                            title.text ="";
-                            description.text = "";
-                            
-                          });
-                          LoadMarkers.addToDb(to_be_saved);
-
+          return AlertDialog(title: Text("data"), actions: <Widget>[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 700,
+                  child: TextField(
+                    controller: title,
+                    decoration: InputDecoration(hintText: "Title"),
+                  ),
+                ),
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: description,
+                    decoration: InputDecoration(hintText: "desciption"),
+                  ),
+                ),
+                Text('chosse location'),
+                Row(
+                  children: [
+                    FlatButton(
+                        onPressed: () {
+                          print(from_alert_dialog);
+                          problem_location_latitude = _currentPostion.latitude;
+                          problem_location_longitude =
+                              _currentPostion.longitude;
+                          print(problem_location_latitude);
+                          print(problem_location_longitude);
+                        },
+                        child: Text("current loaction")),
+                    FlatButton(
+                        onPressed: () {
+                          changeAlertDialogStatus();
+                          print(from_alert_dialog);
+                          // tod: it is 1 but as soon as navigator.pop context..it is again set to default ...why>??
                           Navigator.pop(context);
-                        }, child: Text("save")),
-                      ],
-                    ),
-                  ]);
-                },
-                );
-     
+                          // first choose from map,set the marker and again show alertdialog depending upon from alertdialog.
+
+                          // tod then from the last marker array extract latitiude and longitude as problems latlang.
+                          //tod: why making chnage inside alert dialog, and going outside, it reverts to original state...why??
+                          // print(markers.len);
+                        },
+                        child: Text("choose form map")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    StatefulBuilder(
+                        builder: (BuildContext context, StateSetter setState) {
+                      print("satatefulBuilder");
+                      return Checkbox(
+                        onChanged: (bool value) {
+                          print(value);
+                          setState(() {
+                            default_checkbox_value = value;
+                          });
+                        },
+                        value: default_checkbox_value, //default_check_vlaue
+                      );
+                    }),
+                    Text("include your phone number")
+                  ],
+                ),
+                RaisedButton(onPressed: () {}, child: Text('pick images')),
+                RaisedButton(
+                    onPressed: () {
+                      print(markers);
+                      setState(() {
+                        to_be_saved = {
+                          "title": title.text,
+                          "description": description.text,
+                          "location_latitude": problem_location_latitude,
+                          "location_longitude": problem_location_longitude,
+                          "phone_number": default_checkbox_value
+                        };
+                        from_alert_dialog = 0;
+                        title.text = "";
+                        description.text = "";
+                      });
+                      LoadMarkers.addToDb(to_be_saved);
+                      addMarker_again(27.735994237159627, 85.28792303055525);
+
+                      Navigator.pop(context);
+                    },
+                    child: Text("save")),
+              ],
+            ),
+          ]);
+        },
+      );
     }
 
     return Scaffold(
@@ -261,8 +307,6 @@ class _LoadMapState extends State<LoadMap> {
             // by Sagar Tamang.....ooptional 9840
             // photsl....half shown able to be scrolled.
             show_dialog();
-
-           
           },
           child: Icon(Icons.add),
           tooltip: ('add about the problem'),
@@ -277,22 +321,21 @@ class _LoadMapState extends State<LoadMap> {
             markers: markers.toSet(),
             circles: circlee,
             onTap: (cordinate) {
+              print("coordinate${cordinate}");
               addMarker(cordinate);
-              if(from_alert_dialog ==1){
+              if (from_alert_dialog == 1) {
                 show_dialog();
-                 var markers_length = markers.length;
+                var markers_length = markers.length;
                 print(markers_length);
-                print(markers[markers_length-1].markerId);
+                print(markers[markers_length - 1].markerId);
                 // print(markers[0].markerId.value);
                 // print(markers[0].position.latitude);
                 // print(markers[0].position.longitude);
-                updateProblemLocations(markers[markers_length-1].position.latitude,markers[markers_length-1].position.longitude);
-
-
-
-
+                updateProblemLocations(
+                    markers[markers_length - 1].position.latitude,
+                    markers[markers_length - 1].position.longitude);
               }
-             
+
               print(from_alert_dialog);
             },
           ),
@@ -322,15 +365,12 @@ class _LoadMapState extends State<LoadMap> {
                 StatefulBuilder(
                     builder: (BuildContext context, StateSetter setState) {
                   return Checkbox(
-
                     value: default_checkbox_value,
-
                     onChanged: (bool value) {
                       setState(() {
                         default_checkbox_value = value;
                       });
                       print(value);
-
                     },
                   );
                 }),
@@ -338,15 +378,11 @@ class _LoadMapState extends State<LoadMap> {
               ],
             ),
           ),
-          Checkbox(
-          value :default_checkbox_value,
-          onChanged:(bool value){}
-        ),
+          Checkbox(value: default_checkbox_value, onChanged: (bool value) {}),
 
           Positioned(
             child: RaisedButton(
               onPressed: () {
-              
                 all_location_map.clear();
 
                 markers.forEach((element) {
@@ -372,13 +408,52 @@ class _LoadMapState extends State<LoadMap> {
               child: Text('markers within radius '),
             ),
           ),
-          RaisedButton(onPressed: (){
-            print('show saved data /map');
-            print(to_be_saved);
-            print(from_alert_dialog);
-            
-          },
-          child: Text('show saved data'),),
+          RaisedButton(
+            onPressed: () {
+              print('show saved data /map');
+              print(to_be_saved);
+              print(from_alert_dialog);
+            },
+            child: Text('show saved data'),
+          ),
+          Positioned(
+            bottom: 100,
+            right: 0,
+            child: RaisedButton(
+                onPressed: () {
+                  // LoadMarkers.printdocument();
+                  // print(firebase_document_outside);
+                  // firebase_document_outside.forEach((element,index)=>{
+                  //   print("elm${element}, index ${index}")
+                  // });
+                  // print(firebase_document_outside[0].data);
+
+                  // load from firebase();
+                  for (int i = 0; i < firebase_document_outside.length; i++) {
+                    print(firebase_document_outside[i].data);
+                  }
+                },
+                child: Text('print documents')),
+          ),
+
+          // StreamBuilder(
+          //     stream: cf.snapshots(),
+          //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          //       if (snapshot.hasData) {
+          //         firebase_document_outside = snapshot.data.documents;
+          //         //  print("firebase_doc,${firebase_document_outside}");
+          //         //  firebase_document.map((e) => {print("firebase${e}")});
+          //         //  firebase_document.forEach((element)=>{
+
+          //         //    addMarker_again(element.data['location_latitude'], element.data['location_longitude'])
+
+          //         //  });
+          //         // load_markers();
+
+          //         return Text(
+          //             'streambuilder snapshot length ,${snapshot.data.documents.length}');
+          //       }
+          //     }),
         ]));
   }
 }
