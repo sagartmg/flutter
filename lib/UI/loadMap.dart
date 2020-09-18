@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 // import 'dart:ffi';
 // import 'dart:html';
 import 'dart:math';
@@ -9,6 +10,10 @@ import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maddat/UI/Hood/loadMarkers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 class LoadMap extends StatefulWidget {
   @override
@@ -17,6 +22,8 @@ class LoadMap extends StatefulWidget {
 
 class _LoadMapState extends State<LoadMap> {
   GoogleMapController _controller;
+  File select_image;
+
 
   final CameraPosition _initialPosition =
       CameraPosition(target: LatLng(24.903623, 67.198367));
@@ -36,19 +43,29 @@ class _LoadMapState extends State<LoadMap> {
   var documents = LoadMarkers.documents;
   CollectionReference cf = Firestore.instance.collection('problems');
   var firebase_document_outside1;
-// getting data from firestore. 
-  Future<dynamic> getData()async{
+// getting data from firestore.
+  Future<dynamic> getData() async {
     // firebase_document_outside1 = await cf.get().then<dynamic>((DocumentSnapshot snapshot)async{
     //  return snapshot.data;
     // });
-    firebase_document_outside1 = await Firestore.instance.collection('problems').getDocuments();
+    firebase_document_outside1 =
+        await Firestore.instance.collection('problems').getDocuments();
 
     print(firebase_document_outside1);
     var list1 = firebase_document_outside1.documents;
     print(list1[0].data);
     print("firebase_doudment outside 1");
+    print("list1 alll ${list1}");
+    list1.forEach((element) => {
+          if (element.data['location_latitude'] != null)
+            {
+              addMarker_again(element.data['location_latitude'],
+                  element.data['location_longitude'])
+            }
+        });
   }
-  // end of getting data from firestroe. 
+
+  // end of getting data from firestroe.
 
   @override
   void initState() {
@@ -58,12 +75,16 @@ class _LoadMapState extends State<LoadMap> {
         .handleError((onError) => print(onError))
         .listen((streameddata) => setState(() {
               _currentPostion = UserLocation(
-                  latitude: streameddata.latitude,
-                  longitude: streameddata.longitude);
+                  latitude: streameddata.latitude == null
+                      ? 27.735994237159627
+                      : streameddata.latitude,
+                  longitude: streameddata.longitude == null
+                      ? 85.28792303055525
+                      : streameddata.longitude);
             }));
     // load_markers();
     getData();
-    addMarker_again(27.735994237159627, 85.28792303055525);
+    // addMarker_again(27.735994237159627, 85.28792303055525);
 
     // todo  load markers async wait and then mark in map.
   }
@@ -86,6 +107,7 @@ class _LoadMapState extends State<LoadMap> {
           draggable: true,
           onTap: () {
             print("marker tap");
+                        // showBottomSheet();
             //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
           },
           markerId: MarkerId(id.toString())));
@@ -103,6 +125,7 @@ class _LoadMapState extends State<LoadMap> {
           draggable: true,
           onTap: () {
             print("marker tap");
+            showBottomSheet();
             //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
           },
           markerId: MarkerId(id.toString())));
@@ -174,9 +197,51 @@ class _LoadMapState extends State<LoadMap> {
           });
     }
   }
+  
+ 
+
 
   @override
   Widget build(BuildContext context) {
+      Future getDeviceImage() async{
+    // var selected_image = await ImagePicker.pickImage(source:ImageSource.gallery );
+    //  var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+    var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+       var select_image1 = File(selected_image.path);
+
+    print("image_selcted111111${select_image1}");
+
+     setState(() {
+      select_image = select_image1;
+       print("image__selected2222222${select_image}");
+                        
+     });
+   
+    // setState((){
+
+    // });
+    //  setState(){
+    //    select_image = select_image1;
+    //    print("image__selected2222222${select_image}");
+    //  }
+  }
+
+      Future uploadPic(BuildContext context) async{
+    String fileName = basename(select_image.path); 
+    StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
+    StorageUploadTask uploadTask = firebaseStorageRef.putFile(select_image);
+    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+   
+
+    
+     setState(() {
+      print("uploaded image to firebase");
+      // Scaffold.of(context).showSnackBar(SnackBar(content:Text("added to firebase")));
+                        
+     });
+
+
+  }
     Set<Circle> circlee = Set.from([
       Circle(
         circleId: CircleId("id"),
@@ -262,7 +327,26 @@ class _LoadMapState extends State<LoadMap> {
                     Text("include your phone number")
                   ],
                 ),
-                RaisedButton(onPressed: () {}, child: Text('pick images')),
+                RaisedButton(onPressed: () {
+                  // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+                 
+                 
+                  // // uploadPic();
+
+                  // setState(() {
+                  //   select_image = selected_image;
+                  //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
+                  //   // todo: save timage to database and again retrive the image back 
+                    
+                    
+                    
+                  // });
+                  getDeviceImage();
+
+
+
+
+                }, child: Text('pick images')),
                 RaisedButton(
                     onPressed: () {
                       print(markers);
@@ -282,6 +366,7 @@ class _LoadMapState extends State<LoadMap> {
                       addMarker_again(27.735994237159627, 85.28792303055525);
 
                       Navigator.pop(context);
+                      uploadPic(context);
                     },
                     child: Text("save")),
               ],
@@ -432,30 +517,149 @@ class _LoadMapState extends State<LoadMap> {
                   for (int i = 0; i < firebase_document_outside.length; i++) {
                     print(firebase_document_outside[i].data);
                   }
+                  // buttonPressed();
                 },
                 child: Text('print documents')),
           ),
 
-          // StreamBuilder(
-          //     stream: cf.snapshots(),
-          //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          //       if (snapshot.hasData) {
-          //         firebase_document_outside = snapshot.data.documents;
-          //         //  print("firebase_doc,${firebase_document_outside}");
-          //         //  firebase_document.map((e) => {print("firebase${e}")});
-          //         //  firebase_document.forEach((element)=>{
+          StreamBuilder(
+              stream: Firestore.instance.collection("problems").snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  firebase_document_outside = snapshot.data.documents;
+                  //  print("firebase_doc,${firebase_document_outside}");
+                  //  firebase_document.map((e) => {print("firebase${e}")});
+                  //  firebase_document.forEach((element)=>{
 
-          //         //    addMarker_again(element.data['location_latitude'], element.data['location_longitude'])
+                  //    addMarker_again(element.data['location_latitude'], element.data['location_longitude'])
 
-          //         //  });
-          //         // load_markers();
+                  //  });
+                  // load_markers();
 
-          //         return Text(
-          //             'streambuilder snapshot length ,${snapshot.data.documents.length}');
-          //       }
-          //     }),
+                  return Text(
+                      'streambuilder snapshot length ,${snapshot.data.documents.length}');
+                }
+              }),
         ]));
   }
+
+  void showBottomSheet() {
+
+    // showModalBottomSheet(
+    //     context: context,
+    //     builder: (context) {
+    //       return Container(
+    //         height: 180,
+    //         child: Container(
+    //             decoration: BoxDecoration(
+    //               color: Theme.of(context).canvasColor,
+    //               borderRadius: BorderRadius.only(
+    //                   topLeft: Radius.circular(10),
+    //                   topRight: Radius.circular(10)),
+    //             ),
+    //             child: Column(
+    //               children: [
+    //                 Container(
+    //                   height: 100,
+    //                   color: Colors.red,
+    //                 ),
+    //                 Container(
+    //                   height: 100,
+    //                   color: Colors.redAccent,
+    //                 ),
+    //                 Container(
+    //                   height: 100,
+    //                   color: Colors.cyan,
+    //                 ),
+    //                 Container(
+    //                   height: 100,
+    //                   color: Colors.purple,
+    //                 ),
+    //               ],
+    //             )),
+    //       );
+    //     });
+  //   showModalBottomSheet(
+  //       context: context,
+  //       builder: (context) {
+  //         return Container(
+  //           color: Colors.green,
+  //           // height: 180,
+  //           child: Container(
+  //             decoration: BoxDecoration(
+  //               color: Theme.of(context).canvasColor,
+  //               borderRadius: BorderRadius.only(
+  //                   topLeft: Radius.circular(10),
+  //                   topRight: Radius.circular(10)),
+  //             ),
+  //             child: Column(children: [
+  //               Row(children: [
+  //                 Column(
+  //                   children: [
+                     
+  //                         Icon(Icons.arrow_drop_up),
+                         
+  //                     Text('-12'),
+  //                     Icon(Icons.arrow_drop_down)
+  //                   ],
+  //                 ),
+  //                 Text('old man suffering from hunger in swayambhu'),
+  //               ]),
+  //               Row(
+  //                 children: [
+  //                   Column(
+  //                     children: [Text("by Soemone"), Text("98404025514")],
+  //                   )
+  //                 ],
+  //               ),
+  //               Row(
+  //                 children: [
+  //                   RaisedButton(
+  //                     onPressed: () {},
+  //                     child: Text('add as going'),
+  //                   ),
+  //                   RaisedButton(
+  //                     onPressed: () {
+  //                       // todo details of people on go
+  //                     },
+  //                     child: Text(' 5 people on go'),
+  //                   ),
+  //                   RaisedButton(
+  //                     onPressed: () {},
+  //                     child: Text('mark as solved'),
+  //                   )
+  //                 ],
+  //               ),
+  //               Text('Images'),
+  //               Row(
+  //                 children: [
+  //                   Image(
+  //                     image: AssetImage("assets/01.jpg"),
+  //                     width: 100,
+  //                     height: 100,
+  //                   ),
+  //                   Image(
+  //                     image: AssetImage("assets/02.jpg"),
+  //                     width: 100,
+  //                     height: 100,
+  //                   ),
+  //                 ],
+  //               )
+  //             ]),
+  //           ),
+  //         );
+  //       });
+  // }
+}
+
+}
+Widget showDraggableSheet() {
+  // return DraggableScrollableSheet(builder:BuildContext context, ScrollContainer scrollContainer){
+  //   return Container(
+
+  //   );
+  // };
+  // return DraggableScrollableSheet(builder: (BuildContext context, ScrollContainer));
 }
 
 class UserLocation {
