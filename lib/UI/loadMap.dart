@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+// import 'dart:js';
 // import 'dart:ffi';
 // import 'dart:html';
 import 'dart:math';
@@ -14,7 +15,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
-
 class LoadMap extends StatefulWidget {
   @override
   _LoadMapState createState() => _LoadMapState();
@@ -23,7 +23,8 @@ class LoadMap extends StatefulWidget {
 class _LoadMapState extends State<LoadMap> {
   GoogleMapController _controller;
   File select_image;
-
+  String uploaded_image_url;
+  String image_url;
 
   final CameraPosition _initialPosition =
       CameraPosition(target: LatLng(24.903623, 67.198367));
@@ -58,12 +59,27 @@ class _LoadMapState extends State<LoadMap> {
     print("list1 alll ${list1}");
     list1.forEach((element) => {
           if (element.data['location_latitude'] != null)
-            {
-              addMarker_again(element.data['location_latitude'],
-                  element.data['location_longitude'])
-            }
+            addMarker_again(
+                latitude: element.data['location_latitude'],
+                longitude: element.data['location_longitude'],
+                title: element.data["title"],
+                description: element.data["description"],
+                image_url: element.data['image_url']),
+
+          // changeURL(element.data['image_url'].toString())
+
+          // changeImageUrl()
         });
   }
+
+  // changeURL(String fromfire){
+  //   setState(() {
+  //     image_url = fromfire;
+  //   });
+
+  //   print("the image url is ${image_url}");
+
+  // }
 
   // end of getting data from firestroe.
 
@@ -107,25 +123,30 @@ class _LoadMapState extends State<LoadMap> {
           draggable: true,
           onTap: () {
             print("marker tap");
-                        // showBottomSheet();
-            //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
+            // showTheBottomSheet(this.context);
+            //tod from bottom slider appper and option to delete and all and got to places for direction..info about who added it
           },
           markerId: MarkerId(id.toString())));
     });
   }
 
-  addMarker_again(latitude, lognitude) {
+  addMarker_again({latitude, longitude, title, description, image_url}) {
     int id = Random().nextInt(100);
     // CoordinateLatlng clng =
 
     setState(() {
       //todo on tap of marker show details
       markers.add(Marker(
-          position: LatLng(latitude, lognitude),
+          position: LatLng(latitude, longitude),
           draggable: true,
           onTap: () {
             print("marker tap");
-            showBottomSheet();
+            // showBottomSheet();
+            showTheBottomSheet(
+                context: this.context,
+                title: title,
+                description: description,
+                image_url: image_url);
             //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
           },
           markerId: MarkerId(id.toString())));
@@ -192,56 +213,71 @@ class _LoadMapState extends State<LoadMap> {
           "load_markers called inside firebase document oouside. ,${firebase_document_outside}");
 
       firebase_document_outside.forEach((element) => {
-            addMarker_again(element.data['location_latitude'],
-                element.data['location_longitude'])
+            addMarker_again(
+                latitude: element.data['location_latitude'],
+                longitude: element.data['location_longitude'])
           });
     }
   }
-  
- 
-
 
   @override
   Widget build(BuildContext context) {
-      Future getDeviceImage() async{
-    // var selected_image = await ImagePicker.pickImage(source:ImageSource.gallery );
-    //  var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
-    var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
-       var select_image1 = File(selected_image.path);
+    changeImageUrl(String urlFromFirebase) {
+      setState(() {
+        image_url = urlFromFirebase;
+      });
+    }
 
-    print("image_selcted111111${select_image1}");
+    Future getDeviceImage() async {
+      // var selected_image = await ImagePicker.pickImage(source:ImageSource.gallery );
+      //  var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+      var selected_image =
+          await ImagePicker().getImage(source: ImageSource.gallery);
+      var select_image1 = File(selected_image.path);
 
-     setState(() {
-      select_image = select_image1;
-       print("image__selected2222222${select_image}");
-                        
-     });
-   
-    // setState((){
+      print("image_selcted111111${select_image1}");
 
-    // });
-    //  setState(){
-    //    select_image = select_image1;
-    //    print("image__selected2222222${select_image}");
-    //  }
-  }
+      setState(() {
+        select_image = select_image1;
+        print("image__selected2222222${select_image}");
+      });
 
-      Future uploadPic(BuildContext context) async{
-    String fileName = basename(select_image.path); 
-    StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(select_image);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-   
+      // setState((){
 
-    
-     setState(() {
-      print("uploaded image to firebase");
-      // Scaffold.of(context).showSnackBar(SnackBar(content:Text("added to firebase")));
-                        
-     });
+      // });
+      //  setState(){
+      //    select_image = select_image1;
+      //    print("image__selected2222222${select_image}");
+      //  }
+    }
 
+    Future uploadPic(BuildContext context) async {
+      final storage = FirebaseStorage.instance;
+      String fileName = basename(select_image.path);
 
-  }
+      var firebase_snapshot =
+          await storage.ref().child(fileName).putFile(select_image).onComplete;
+
+      var downloadUrl = await firebase_snapshot.ref.getDownloadURL();
+      setState(() {
+        uploaded_image_url = downloadUrl;
+      });
+
+      // StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
+      // StorageUploadTask uploadTask = firebaseStorageRef.putFile(select_image);
+      // StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+
+// String fileName = basename(select_image.path);
+      // StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
+      // StorageUploadTask uploadTask = firebaseStorageRef.putFile(select_image);
+      // StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
+
+      setState(() {
+        print("uploaded image to firebase");
+        // Scaffold.of(context).showSnackBar(SnackBar(content:Text("added to firebase")));
+      });
+    }
+
     Set<Circle> circlee = Set.from([
       Circle(
         circleId: CircleId("id"),
@@ -327,46 +363,43 @@ class _LoadMapState extends State<LoadMap> {
                     Text("include your phone number")
                   ],
                 ),
-                RaisedButton(onPressed: () {
-                  // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
-                 
-                 
-                  // // uploadPic();
-
-                  // setState(() {
-                  //   select_image = selected_image;
-                  //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
-                  //   // todo: save timage to database and again retrive the image back 
-                    
-                    
-                    
-                  // });
-                  getDeviceImage();
-
-
-
-
-                }, child: Text('pick images')),
                 RaisedButton(
                     onPressed: () {
+                      // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+
+                      // // uploadPic();
+
+                      // setState(() {
+                      //   select_image = selected_image;
+                      //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
+                      //   // todo: save timage to database and again retrive the image back
+
+                      // });
+                      getDeviceImage();
+                    },
+                    child: Text('pick images')),
+                RaisedButton(
+                    onPressed: () async {
                       print(markers);
+
+                      Navigator.pop(context);
+                      await uploadPic(context);
                       setState(() {
+                        //todo  the user id shall match if the user wants to delecte teh thigs he added. 
                         to_be_saved = {
+                          "userId":12,
                           "title": title.text,
                           "description": description.text,
                           "location_latitude": problem_location_latitude,
                           "location_longitude": problem_location_longitude,
-                          "phone_number": default_checkbox_value
+                          "phone_number": default_checkbox_value,
+                          "image_url": uploaded_image_url
                         };
                         from_alert_dialog = 0;
                         title.text = "";
                         description.text = "";
                       });
                       LoadMarkers.addToDb(to_be_saved);
-                      addMarker_again(27.735994237159627, 85.28792303055525);
-
-                      Navigator.pop(context);
-                      uploadPic(context);
                     },
                     child: Text("save")),
               ],
@@ -543,8 +576,8 @@ class _LoadMapState extends State<LoadMap> {
         ]));
   }
 
-  void showBottomSheet() {
-
+  void showTheBottomSheet(
+      {BuildContext context, title, description, image_url}) {
     // showModalBottomSheet(
     //     context: context,
     //     builder: (context) {
@@ -579,80 +612,73 @@ class _LoadMapState extends State<LoadMap> {
     //             )),
     //       );
     //     });
-  //   showModalBottomSheet(
-  //       context: context,
-  //       builder: (context) {
-  //         return Container(
-  //           color: Colors.green,
-  //           // height: 180,
-  //           child: Container(
-  //             decoration: BoxDecoration(
-  //               color: Theme.of(context).canvasColor,
-  //               borderRadius: BorderRadius.only(
-  //                   topLeft: Radius.circular(10),
-  //                   topRight: Radius.circular(10)),
-  //             ),
-  //             child: Column(children: [
-  //               Row(children: [
-  //                 Column(
-  //                   children: [
-                     
-  //                         Icon(Icons.arrow_drop_up),
-                         
-  //                     Text('-12'),
-  //                     Icon(Icons.arrow_drop_down)
-  //                   ],
-  //                 ),
-  //                 Text('old man suffering from hunger in swayambhu'),
-  //               ]),
-  //               Row(
-  //                 children: [
-  //                   Column(
-  //                     children: [Text("by Soemone"), Text("98404025514")],
-  //                   )
-  //                 ],
-  //               ),
-  //               Row(
-  //                 children: [
-  //                   RaisedButton(
-  //                     onPressed: () {},
-  //                     child: Text('add as going'),
-  //                   ),
-  //                   RaisedButton(
-  //                     onPressed: () {
-  //                       // todo details of people on go
-  //                     },
-  //                     child: Text(' 5 people on go'),
-  //                   ),
-  //                   RaisedButton(
-  //                     onPressed: () {},
-  //                     child: Text('mark as solved'),
-  //                   )
-  //                 ],
-  //               ),
-  //               Text('Images'),
-  //               Row(
-  //                 children: [
-  //                   Image(
-  //                     image: AssetImage("assets/01.jpg"),
-  //                     width: 100,
-  //                     height: 100,
-  //                   ),
-  //                   Image(
-  //                     image: AssetImage("assets/02.jpg"),
-  //                     width: 100,
-  //                     height: 100,
-  //                   ),
-  //                 ],
-  //               )
-  //             ]),
-  //           ),
-  //         );
-  //       });
-  // }
+    showModalBottomSheet(
+        context: this.context,
+        builder: (context) {
+          return Container(
+            color: Colors.green,
+            // height: 180,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).canvasColor,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10)),
+              ),
+              child: Column(children: [
+                Row(children: [
+                  Column(
+                    children: [
+                      Icon(Icons.arrow_drop_up),
+                      Text('-12'),
+                      Icon(Icons.arrow_drop_down)
+                    ],
+                  ),
+                  Text(title),
+                ]),
+                Row(
+                  children: [
+                    Column(
+                      children: [
+                        Text("by Soemone${description}"),
+                        Text("98404025514")
+                      ],
+                    )
+                  ],
+                ),
+                Row(
+                  children: [
+                    RaisedButton(
+                      onPressed: () {},
+                      child: Text('add as going'),
+                    ),
+                    RaisedButton(
+                      onPressed: () {
+                        // todo details of people on go
+                      },
+                      child: Text(' 5 people on go'),
+                    ),
+                    RaisedButton(
+                      onPressed: () {},
+                      child: Text('mark as solved'),
+                    )
+                  ],
+                ),
+                Text('Images'),
+                image_url!=null?
+                Row(
+                  children: [
+                   
+                    FadeInImage.assetNetwork(placeholder:'assets/spinner.gif', image:image_url, width: 100,height: 100),
+                  ],
+                ):Container(),
+              ]),
+            ),
+          );
+        });
+  }
 }
 
-}
 Widget showDraggableSheet() {
   // return DraggableScrollableSheet(builder:BuildContext context, ScrollContainer scrollContainer){
   //   return Container(
