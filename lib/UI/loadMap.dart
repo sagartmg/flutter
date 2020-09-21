@@ -102,7 +102,7 @@ class _LoadMapState extends State<LoadMap> {
     getData();
     // addMarker_again(27.735994237159627, 85.28792303055525);
 
-    // todo  load markers async wait and then mark in map.
+    // tod  load markers async wait and then mark in map.
   }
 
   @override
@@ -117,12 +117,13 @@ class _LoadMapState extends State<LoadMap> {
     // CoordinateLatlng clng =
 
     setState(() {
-      //todo on tap of marker show details
+      //tod on tap of marker show details
       markers.add(Marker(
           position: cordinate,
           draggable: true,
           onTap: () {
             print("marker tap");
+            // tod bottom slider but with thext,, the marker has not been added yet..
             // showTheBottomSheet(this.context);
             //tod from bottom slider appper and option to delete and all and got to places for direction..info about who added it
           },
@@ -135,7 +136,7 @@ class _LoadMapState extends State<LoadMap> {
     // CoordinateLatlng clng =
 
     setState(() {
-      //todo on tap of marker show details
+      //tod on tap of marker show details
       markers.add(Marker(
           position: LatLng(latitude, longitude),
           draggable: true,
@@ -195,7 +196,7 @@ class _LoadMapState extends State<LoadMap> {
 
   load_markers() async {
     print("load_markers called out");
-    //  todo wait til firebase dta has been extracted.
+    //  tod wait til firebase dta has been extracted.
     // firebase_document_outside = await StreamBuilder(
     //     stream: cf.snapshots(),
     //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -251,8 +252,9 @@ class _LoadMapState extends State<LoadMap> {
       //  }
     }
 
-    Future uploadPic(BuildContext context) async {
-      final storage = FirebaseStorage.instance;
+    final storage = FirebaseStorage.instance;
+
+    Future uploadPic(context) async {
       String fileName = basename(select_image.path);
 
       var firebase_snapshot =
@@ -262,6 +264,7 @@ class _LoadMapState extends State<LoadMap> {
       setState(() {
         uploaded_image_url = downloadUrl;
       });
+      print("uploaded image to firebase");
 
       // StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child(fileName);
       // StorageUploadTask uploadTask = firebaseStorageRef.putFile(select_image);
@@ -272,10 +275,7 @@ class _LoadMapState extends State<LoadMap> {
       // StorageUploadTask uploadTask = firebaseStorageRef.putFile(select_image);
       // StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
 
-      setState(() {
-        print("uploaded image to firebase");
-        // Scaffold.of(context).showSnackBar(SnackBar(content:Text("added to firebase")));
-      });
+      // Scaffold.of(context).showSnackBar(SnackBar(content:Text("added to firebase")));
     }
 
     Set<Circle> circlee = Set.from([
@@ -300,111 +300,126 @@ class _LoadMapState extends State<LoadMap> {
           bool checkdata = false;
 
           return AlertDialog(title: Text("data"), actions: <Widget>[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 700,
-                  child: TextField(
-                    controller: title,
-                    decoration: InputDecoration(hintText: "Title"),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 700,
+                    child: TextField(
+                      controller: title,
+                      decoration: InputDecoration(hintText: "Title"),
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 300,
-                  child: TextField(
-                    controller: description,
-                    decoration: InputDecoration(hintText: "desciption"),
+                  SizedBox(
+                    width: 300,
+                    child: TextField(
+                      controller: description,
+                      decoration: InputDecoration(hintText: "desciption"),
+                    ),
                   ),
-                ),
-                Text('chosse location'),
-                Row(
-                  children: [
-                    FlatButton(
-                        onPressed: () {
-                          print(from_alert_dialog);
-                          problem_location_latitude = _currentPostion.latitude;
-                          problem_location_longitude =
-                              _currentPostion.longitude;
-                          print(problem_location_latitude);
-                          print(problem_location_longitude);
-                        },
-                        child: Text("current loaction")),
-                    FlatButton(
-                        onPressed: () {
-                          changeAlertDialogStatus();
-                          print(from_alert_dialog);
-                          // tod: it is 1 but as soon as navigator.pop context..it is again set to default ...why>??
-                          Navigator.pop(context);
-                          // first choose from map,set the marker and again show alertdialog depending upon from alertdialog.
+                  Text('chosse location'),
+                  Row(
+                    children: [
+                      FlatButton(
+                          onPressed: () {
+                            print(from_alert_dialog);
+                            problem_location_latitude =
+                                _currentPostion.latitude;
+                            problem_location_longitude =
+                                _currentPostion.longitude;
+                            print(problem_location_latitude);
+                            print(problem_location_longitude);
+                          },
+                          child: Text("current loaction")),
+                      FlatButton(
+                          onPressed: () {
+                            changeAlertDialogStatus();
+                            print(from_alert_dialog);
+                            // tod: it is 1 but as soon as navigator.pop context..it is again set to default ...why>??
+                            Navigator.pop(context);
+                            // first choose from map,set the marker and again show alertdialog depending upon from alertdialog.
 
-                          // tod then from the last marker array extract latitiude and longitude as problems latlang.
-                          //tod: why making chnage inside alert dialog, and going outside, it reverts to original state...why??
-                          // print(markers.len);
-                        },
-                        child: Text("choose form map")),
-                  ],
-                ),
-                Row(
-                  children: [
-                    StatefulBuilder(
-                        builder: (BuildContext context, StateSetter setState) {
-                      print("satatefulBuilder");
-                      return Checkbox(
-                        onChanged: (bool value) {
-                          print(value);
-                          setState(() {
-                            default_checkbox_value = value;
-                          });
-                        },
-                        value: default_checkbox_value, //default_check_vlaue
-                      );
-                    }),
-                    Text("include your phone number")
-                  ],
-                ),
-                RaisedButton(
-                    onPressed: () {
-                      // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+                            // tod then from the last marker array extract latitiude and longitude as problems latlang.
+                            //tod: why making chnage inside alert dialog, and going outside, it reverts to original state...why??
+                            // print(markers.len);
+                          },
+                          child: Text("choose form map")),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      StatefulBuilder(builder:
+                          (BuildContext context, StateSetter setState) {
+                        print("satatefulBuilder");
+                        return Checkbox(
+                          onChanged: (bool value) {
+                            print(value);
+                            setState(() {
+                              default_checkbox_value = value;
+                            });
+                          },
+                          value: default_checkbox_value, //default_check_vlaue
+                        );
+                      }),
+                      Text("include your phone number")
+                    ],
+                  ),
+                  RaisedButton(
+                      onPressed: () {
+                        // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
 
-                      // // uploadPic();
+                        // // uploadPic();
 
-                      // setState(() {
-                      //   select_image = selected_image;
-                      //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
-                      //   // todo: save timage to database and again retrive the image back
+                        // setState(() {
+                        //   select_image = selected_image;
+                        //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
+                        //   // todo: save timage to database and again retrive the image back___MULTIPLE IMAGES
 
-                      // });
-                      getDeviceImage();
-                    },
-                    child: Text('pick images')),
-                RaisedButton(
-                    onPressed: () async {
-                      print(markers);
+                        // });
+                        getDeviceImage();
+                      },
+                      child: Text('pick images')),
+                  Builder(
+                    builder: (context) => RaisedButton(
+                      onPressed: () async {
+                        print(markers);
+                        Navigator.pop(context);
+                        
 
-                      Navigator.pop(context);
-                      await uploadPic(context);
-                      setState(() {
-                        //todo  the user id shall match if the user wants to delecte teh thigs he added. 
-                        to_be_saved = {
-                          "userId":12,
-                          "title": title.text,
-                          "description": description.text,
-                          "location_latitude": problem_location_latitude,
-                          "location_longitude": problem_location_longitude,
-                          "phone_number": default_checkbox_value,
-                          "image_url": uploaded_image_url
-                        };
-                        from_alert_dialog = 0;
-                        title.text = "";
-                        description.text = "";
-                      });
-                      LoadMarkers.addToDb(to_be_saved);
-                    },
-                    child: Text("save")),
-              ],
-            ),
-          ]);
+                        select_image != null? await uploadPic(context): print('slect imageis null bitch}');
+                        //
+                        // todo why snackbar aint working though builder aslos and scaffold also.
+                        // Scaffold.of(context).showSnackBar(SnackBar(
+                        //   content: Text("added to firebase"),
+                        //   duration: Duration(seconds: 3),
+                        // ));
+
+                        setState(() {
+                          //todo  the user id shall match if the user wants to delecte teh thigs he added.
+                          to_be_saved = {
+                            "userId": 12,
+                            "title": title.text,
+                            "description": description.text,
+                            "location_latitude": problem_location_latitude,
+                            "location_longitude": problem_location_longitude,
+                            "phone_number": default_checkbox_value,
+                            "image_url": uploaded_image_url
+                          };
+                          from_alert_dialog = 0;
+                          title.text = "";
+                          description.text = "";
+                        });
+                        LoadMarkers.addToDb(to_be_saved);
+                      },
+                      child: Text("save"),
+                      //todo after save,,rebuild teh widget..
+                    ),
+                  ),
+                 
+                ],
+              ),
+            ]);
+          
         },
       );
     }
@@ -578,40 +593,6 @@ class _LoadMapState extends State<LoadMap> {
 
   void showTheBottomSheet(
       {BuildContext context, title, description, image_url}) {
-    // showModalBottomSheet(
-    //     context: context,
-    //     builder: (context) {
-    //       return Container(
-    //         height: 180,
-    //         child: Container(
-    //             decoration: BoxDecoration(
-    //               color: Theme.of(context).canvasColor,
-    //               borderRadius: BorderRadius.only(
-    //                   topLeft: Radius.circular(10),
-    //                   topRight: Radius.circular(10)),
-    //             ),
-    //             child: Column(
-    //               children: [
-    //                 Container(
-    //                   height: 100,
-    //                   color: Colors.red,
-    //                 ),
-    //                 Container(
-    //                   height: 100,
-    //                   color: Colors.redAccent,
-    //                 ),
-    //                 Container(
-    //                   height: 100,
-    //                   color: Colors.cyan,
-    //                 ),
-    //                 Container(
-    //                   height: 100,
-    //                   color: Colors.purple,
-    //                 ),
-    //               ],
-    //             )),
-    //       );
-    //     });
     showModalBottomSheet(
         context: this.context,
         builder: (context) {
@@ -664,14 +645,27 @@ class _LoadMapState extends State<LoadMap> {
                     )
                   ],
                 ),
+                RaisedButton(
+                    onPressed: () async {
+                      // todo only those who added can delete photos. and ofc me...the boss
+                      StorageReference photRef = await FirebaseStorage.instance
+                          .getReferenceFromUrl(image_url);
+                      await photRef.delete();
+                      
+                    },
+                    child: Text("dlete image")),
                 Text('Images'),
-                image_url!=null?
-                Row(
-                  children: [
-                   
-                    FadeInImage.assetNetwork(placeholder:'assets/spinner.gif', image:image_url, width: 100,height: 100),
-                  ],
-                ):Container(),
+                image_url != null
+                    ? Row(
+                        children: [
+                          FadeInImage.assetNetwork(
+                              placeholder: 'assets/spinner.gif',
+                              image: image_url,
+                              width: 100,
+                              height: 100),
+                        ],
+                      )
+                    : Container(),
               ]),
             ),
           );
@@ -698,3 +692,30 @@ class UserLocation {
 class Diff extends GeolocatorPlatform {
 } // becuase instance member cannot be accessed using static access. Geo<Abstract> contains a function which
 //  we need ,==> extend it and tehn use the class's instance
+
+// class DisplaySnack extends StatelessWidget{
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold.of(context).showSnackBar(new SnackBar(
+//        content: Text("added"),
+//        duration: Duration(seconds: 3),
+//      ));
+//     // TODO: implement build
+//   }
+
+// }
+
+// class ShowSnack extends StatefulWidget {
+//   @override
+//   _ShowSnackState createState() => _ShowSnackState();
+// }
+
+// class _ShowSnackState extends State<ShowSnack> {
+//   @override
+//   Widget build(BuildContext context) {
+//     return  Scaffold.of(context).showSnackBar(new SnackBar(
+//        content: Text("added"),
+//        duration: Duration(seconds: 3),
+//      ));
+//   }
+// }
