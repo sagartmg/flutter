@@ -55,8 +55,8 @@ class _LoadMapState extends State<LoadMap> {
     print(firebase_document_outside1);
     var list1 = firebase_document_outside1.documents;
     print(list1[0].data);
-    print("firebase_doudment outside 1");
-    print("list1 alll ${list1}");
+    // print("firebase_doudment outside 1");
+    // print("list1 alll ${list1}");
     list1.forEach((element) => {
           if (element.data['location_latitude'] != null)
             addMarker_again(
@@ -65,23 +65,8 @@ class _LoadMapState extends State<LoadMap> {
                 title: element.data["title"],
                 description: element.data["description"],
                 image_url: element.data['image_url']),
-
-          // changeURL(element.data['image_url'].toString())
-
-          // changeImageUrl()
         });
   }
-
-  // changeURL(String fromfire){
-  //   setState(() {
-  //     image_url = fromfire;
-  //   });
-
-  //   print("the image url is ${image_url}");
-
-  // }
-
-  // end of getting data from firestroe.
 
   @override
   void initState() {
@@ -98,9 +83,7 @@ class _LoadMapState extends State<LoadMap> {
                       ? 85.28792303055525
                       : streameddata.longitude);
             }));
-    // load_markers();
     getData();
-    // addMarker_again(27.735994237159627, 85.28792303055525);
 
     // tod  load markers async wait and then mark in map.
   }
@@ -133,7 +116,6 @@ class _LoadMapState extends State<LoadMap> {
 
   addMarker_again({latitude, longitude, title, description, image_url}) {
     int id = Random().nextInt(100);
-    // CoordinateLatlng clng =
 
     setState(() {
       //tod on tap of marker show details
@@ -174,6 +156,8 @@ class _LoadMapState extends State<LoadMap> {
 
   TextEditingController title = new TextEditingController();
   TextEditingController description = new TextEditingController();
+  TextEditingController select_radius = new TextEditingController();
+
   Map<String, dynamic> to_be_saved;
   var problem_location_latitude;
   var problem_location_longitude;
@@ -194,32 +178,19 @@ class _LoadMapState extends State<LoadMap> {
 
   var firebase_document_outside;
 
-  load_markers() async {
-    print("load_markers called out");
-    //  tod wait til firebase dta has been extracted.
-    // firebase_document_outside = await StreamBuilder(
-    //     stream: cf.snapshots(),
-    //     builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-    //       if (snapshot.hasData) {
-    //         firebase_document_outside = snapshot.data.documents;
-    //         print("firebase_snapshot_saved");
+  // load_markers() async {
+  //   print("load_markers called out");
+  //   if (firebase_document_outside != null) {
+  //     print(
+  //         "load_markers called inside firebase document oouside. ,${firebase_document_outside}");
 
-    //         return Text(
-    //             'streambuilder snapshot length ,${snapshot.data.documents.length}');
-    //       }
-    //     });
-
-    if (firebase_document_outside != null) {
-      print(
-          "load_markers called inside firebase document oouside. ,${firebase_document_outside}");
-
-      firebase_document_outside.forEach((element) => {
-            addMarker_again(
-                latitude: element.data['location_latitude'],
-                longitude: element.data['location_longitude'])
-          });
-    }
-  }
+  //     firebase_document_outside.forEach((element) => {
+  //           addMarker_again(
+  //               latitude: element.data['location_latitude'],
+  //               longitude: element.data['location_longitude'])
+  //         });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -230,8 +201,6 @@ class _LoadMapState extends State<LoadMap> {
     }
 
     Future getDeviceImage() async {
-      // var selected_image = await ImagePicker.pickImage(source:ImageSource.gallery );
-      //  var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
       var selected_image =
           await ImagePicker().getImage(source: ImageSource.gallery);
       var select_image1 = File(selected_image.path);
@@ -242,14 +211,6 @@ class _LoadMapState extends State<LoadMap> {
         select_image = select_image1;
         print("image__selected2222222${select_image}");
       });
-
-      // setState((){
-
-      // });
-      //  setState(){
-      //    select_image = select_image1;
-      //    print("image__selected2222222${select_image}");
-      //  }
     }
 
     final storage = FirebaseStorage.instance;
@@ -287,7 +248,10 @@ class _LoadMapState extends State<LoadMap> {
         strokeColor: Colors.blueAccent.withOpacity(0.0),
         fillColor: Colors.blueAccent.withOpacity(0.2),
         center: LatLng(_currentPostion.latitude, _currentPostion.longitude),
-        radius: 5000,
+        //todo in setting select the default radius.
+        radius: select_radius.text.length == 0
+            ? 5000
+            : double.parse(select_radius.text) * 1000,
       )
     ]);
 
@@ -300,128 +264,151 @@ class _LoadMapState extends State<LoadMap> {
           bool checkdata = false;
 
           return AlertDialog(title: Text("data"), actions: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 700,
-                    child: TextField(
-                      controller: title,
-                      decoration: InputDecoration(hintText: "Title"),
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 700,
+                  child: TextField(
+                    controller: title,
+                    decoration: InputDecoration(hintText: "Title"),
                   ),
-                  SizedBox(
-                    width: 300,
-                    child: TextField(
-                      controller: description,
-                      decoration: InputDecoration(hintText: "desciption"),
-                    ),
+                ),
+                SizedBox(
+                  width: 300,
+                  child: TextField(
+                    controller: description,
+                    decoration: InputDecoration(hintText: "desciption"),
                   ),
-                  Text('chosse location'),
-                  Row(
-                    children: [
-                      FlatButton(
-                          onPressed: () {
-                            print(from_alert_dialog);
-                            problem_location_latitude =
-                                _currentPostion.latitude;
-                            problem_location_longitude =
-                                _currentPostion.longitude;
-                            print(problem_location_latitude);
-                            print(problem_location_longitude);
-                          },
-                          child: Text("current loaction")),
-                      FlatButton(
-                          onPressed: () {
-                            changeAlertDialogStatus();
-                            print(from_alert_dialog);
-                            // tod: it is 1 but as soon as navigator.pop context..it is again set to default ...why>??
-                            Navigator.pop(context);
-                            // first choose from map,set the marker and again show alertdialog depending upon from alertdialog.
+                ),
+                Text('chosse location'),
+                Row(
+                  children: [
+                    FlatButton(
+                        onPressed: () {
+                          print(from_alert_dialog);
+                          problem_location_latitude = _currentPostion.latitude;
+                          problem_location_longitude =
+                              _currentPostion.longitude;
+                          print(problem_location_latitude);
+                          print(problem_location_longitude);
+                        },
+                        child: Text("current loaction")),
+                    FlatButton(
+                        onPressed: () {
+                          changeAlertDialogStatus();
+                          print(from_alert_dialog);
+                          // tod: it is 1 but as soon as navigator.pop context..it is again set to default ...why>??
+                          Navigator.pop(context);
+                          // first choose from map,set the marker and again show alertdialog depending upon from alertdialog.
 
-                            // tod then from the last marker array extract latitiude and longitude as problems latlang.
-                            //tod: why making chnage inside alert dialog, and going outside, it reverts to original state...why??
-                            // print(markers.len);
-                          },
-                          child: Text("choose form map")),
-                    ],
+                          // tod then from the last marker array extract latitiude and longitude as problems latlang.
+                          //tod: why making chnage inside alert dialog, and going outside, it reverts to original state...why??
+                          // print(markers.len);
+                        },
+                        child: Text("choose form map")),
+                  ],
+                ),
+                Row(
+                  children: [
+                    StatefulBuilder(
+                        builder: (BuildContext context, StateSetter setState) {
+                      print("satatefulBuilder");
+                      return Checkbox(
+                        onChanged: (bool value) {
+                          print(value);
+                          setState(() {
+                            default_checkbox_value = value;
+                          });
+                        },
+                        value: default_checkbox_value, //default_check_vlaue
+                      );
+                    }),
+                    Text("include your phone number")
+                  ],
+                ),
+                RaisedButton(
+                    onPressed: () {
+                      // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
+
+                      // // uploadPic();
+
+                      // setState(() {
+                      //   select_image = selected_image;
+                      //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
+                      //   // todo: save timage to database and again retrive the image back___MULTIPLE IMAGES
+
+                      // });
+                      getDeviceImage();
+                    },
+                    child: Text('pick images')),
+                Builder(
+                  builder: (context) => RaisedButton(
+                    onPressed: () async {
+                      print(markers);
+                      Navigator.pop(context);
+
+                      select_image != null
+                          ? await uploadPic(context)
+                          : print('slect imageis null bitch}');
+                      //
+                      // todo why snackbar aint working though builder aslos and scaffold also.
+                      // Scaffold.of(context).showSnackBar(SnackBar(
+                      //   content: Text("added to firebase"),
+                      //   duration: Duration(seconds: 3),
+                      // ));
+
+                      setState(() {
+                        //todo  the user id shall match if the user wants to delecte teh thigs he added.
+                        to_be_saved = {
+                          "userId": 12,
+                          "title": title.text,
+                          "description": description.text,
+                          "location_latitude": problem_location_latitude,
+                          "location_longitude": problem_location_longitude,
+                          "phone_number": default_checkbox_value,
+                          "image_url": uploaded_image_url
+                        };
+                        from_alert_dialog = 0;
+                        title.text = "";
+                        description.text = "";
+                      });
+                      LoadMarkers.addToDb(to_be_saved);
+                    },
+                    child: Text("save"),
+                    //todo after save,,rebuild teh widget..
                   ),
-                  Row(
-                    children: [
-                      StatefulBuilder(builder:
-                          (BuildContext context, StateSetter setState) {
-                        print("satatefulBuilder");
-                        return Checkbox(
-                          onChanged: (bool value) {
-                            print(value);
-                            setState(() {
-                              default_checkbox_value = value;
-                            });
-                          },
-                          value: default_checkbox_value, //default_check_vlaue
-                        );
-                      }),
-                      Text("include your phone number")
-                    ],
-                  ),
-                  RaisedButton(
-                      onPressed: () {
-                        // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
-
-                        // // uploadPic();
-
-                        // setState(() {
-                        //   select_image = selected_image;
-                        //   // select_image = ImagePicker().getImage(source: ImageSource.gallery)
-                        //   // todo: save timage to database and again retrive the image back___MULTIPLE IMAGES
-
-                        // });
-                        getDeviceImage();
-                      },
-                      child: Text('pick images')),
-                  Builder(
-                    builder: (context) => RaisedButton(
-                      onPressed: () async {
-                        print(markers);
-                        Navigator.pop(context);
-                        
-
-                        select_image != null? await uploadPic(context): print('slect imageis null bitch}');
-                        //
-                        // todo why snackbar aint working though builder aslos and scaffold also.
-                        // Scaffold.of(context).showSnackBar(SnackBar(
-                        //   content: Text("added to firebase"),
-                        //   duration: Duration(seconds: 3),
-                        // ));
-
-                        setState(() {
-                          //todo  the user id shall match if the user wants to delecte teh thigs he added.
-                          to_be_saved = {
-                            "userId": 12,
-                            "title": title.text,
-                            "description": description.text,
-                            "location_latitude": problem_location_latitude,
-                            "location_longitude": problem_location_longitude,
-                            "phone_number": default_checkbox_value,
-                            "image_url": uploaded_image_url
-                          };
-                          from_alert_dialog = 0;
-                          title.text = "";
-                          description.text = "";
-                        });
-                        LoadMarkers.addToDb(to_be_saved);
-                      },
-                      child: Text("save"),
-                      //todo after save,,rebuild teh widget..
-                    ),
-                  ),
-                 
-                ],
-              ),
-            ]);
-          
+                ),
+              ],
+            ),
+          ]);
         },
       );
+    }
+
+    var within_radius = 5;
+    find_number_of_markers(within_radius) {
+      all_location_map.clear();
+
+      markers.forEach((element) {
+        double radius_difference = Diff().distanceBetween(
+            _currentPostion.latitude,
+            _currentPostion.longitude,
+            element.position.latitude,
+            element.position.longitude);
+
+        differencesInRadius.add(radius_difference);
+
+        all_location_map
+            .add({"location": element, "radius": radius_difference});
+      });
+      print(all_location_map.length);
+      // need setState??  setstate is need when ver we need to rebuild widget tree.
+      final_sorted_locations = all_location_map
+          .where((element) => element['radius'] <= within_radius * 1000)
+          .toList();
+      print("finally $final_sorted_locations");
+      print('finalsortedlocations",${final_sorted_locations.length}');
     }
 
     return Scaffold(
@@ -480,94 +467,34 @@ class _LoadMapState extends State<LoadMap> {
               onPressed: _myLocation,
             ),
           ),
+
           Positioned(
-            bottom: 80,
-            left: 0,
-            child: Text('number of markers within the radius 5KM'),
-          ),
-          Positioned(
-            bottom: 1000,
-            left: 0,
-            child: Text('Selected Radius: 5KM'),
-          ),
-          Positioned(
-            top: 30,
-            left: 0,
-            child: Row(
-              children: [
-                StatefulBuilder(
-                    builder: (BuildContext context, StateSetter setState) {
-                  return Checkbox(
-                    value: default_checkbox_value,
-                    onChanged: (bool value) {
+            child:
+                SizedBox(
+                  width: 100,
+                  child: TextField(
+                    controller: select_radius,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(hintText: "radius in KM"),
+                    onChanged: (string) {
+                      find_number_of_markers(5);
                       setState(() {
-                        default_checkbox_value = value;
+                        within_radius = int.parse(string);
+                        select_radius.text.isNotEmpty
+                            ? find_number_of_markers(within_radius)
+                            : find_number_of_markers(5);
                       });
-                      print(value);
                     },
-                  );
-                }),
-                Text("include your phone number")
-              ],
+                  ),
+                ),
             ),
-          ),
-          Checkbox(value: default_checkbox_value, onChanged: (bool value) {}),
-
           Positioned(
-            child: RaisedButton(
-              onPressed: () {
-                all_location_map.clear();
-
-                markers.forEach((element) {
-                  double radius_difference = Diff().distanceBetween(
-                      _currentPostion.latitude,
-                      _currentPostion.longitude,
-                      element.position.latitude,
-                      element.position.longitude);
-
-                  differencesInRadius.add(radius_difference);
-
-                  all_location_map
-                      .add({"location": element, "radius": radius_difference});
-                });
-                print(all_location_map.length);
-
-                final_sorted_locations = all_location_map
-                    .where((element) => element['radius'] <= 5000)
-                    .toList();
-                print("finally $final_sorted_locations");
-                print('finalsortedlocations",${final_sorted_locations.length}');
-              },
-              child: Text('markers within radius '),
-            ),
-          ),
-          RaisedButton(
-            onPressed: () {
-              print('show saved data /map');
-              print(to_be_saved);
-              print(from_alert_dialog);
-            },
-            child: Text('show saved data'),
-          ),
-          Positioned(
-            bottom: 100,
-            right: 0,
-            child: RaisedButton(
-                onPressed: () {
-                  // LoadMarkers.printdocument();
-                  // print(firebase_document_outside);
-                  // firebase_document_outside.forEach((element,index)=>{
-                  //   print("elm${element}, index ${index}")
-                  // });
-                  // print(firebase_document_outside[0].data);
-
-                  // load from firebase();
-                  for (int i = 0; i < firebase_document_outside.length; i++) {
-                    print(firebase_document_outside[i].data);
-                  }
-                  // buttonPressed();
-                },
-                child: Text('print documents')),
+            top: 100,
+            child: select_radius.text.length == 0
+                ? Text(
+                    "in area 5, there are ${final_sorted_locations.length} people in need.")
+                : Text(
+                    "in area ${select_radius.text}, there are ${final_sorted_locations.length} people in need."),
           ),
 
           StreamBuilder(
@@ -575,6 +502,8 @@ class _LoadMapState extends State<LoadMap> {
               builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                 if (snapshot.hasData) {
                   firebase_document_outside = snapshot.data.documents;
+                  // warning !! this doesnot call the set sate so the firebase_cdocument outside this stream builder never gets updatad.
+
                   //  print("firebase_doc,${firebase_document_outside}");
                   //  firebase_document.map((e) => {print("firebase${e}")});
                   //  firebase_document.forEach((element)=>{
@@ -587,6 +516,7 @@ class _LoadMapState extends State<LoadMap> {
                   return Text(
                       'streambuilder snapshot length ,${snapshot.data.documents.length}');
                 }
+                return Text("not loaded the firebase documents right now. ");
               }),
         ]));
   }
@@ -651,7 +581,6 @@ class _LoadMapState extends State<LoadMap> {
                       StorageReference photRef = await FirebaseStorage.instance
                           .getReferenceFromUrl(image_url);
                       await photRef.delete();
-                      
                     },
                     child: Text("dlete image")),
                 Text('Images'),
@@ -659,6 +588,7 @@ class _LoadMapState extends State<LoadMap> {
                     ? Row(
                         children: [
                           FadeInImage.assetNetwork(
+                              // todo on tap of image hero widget and oopen full image. and slider for multiple images.
                               placeholder: 'assets/spinner.gif',
                               image: image_url,
                               width: 100,
