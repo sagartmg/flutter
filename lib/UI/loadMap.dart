@@ -48,26 +48,46 @@ class _LoadMapState extends State<LoadMap> {
   CollectionReference cf = Firestore.instance.collection('problems');
   var firebase_document_outside1;
 // getting data from firestore.
+  List all_documents;
+
   Future<dynamic> getData() async {
     // firebase_document_outside1 = await cf.get().then<dynamic>((DocumentSnapshot snapshot)async{
     //  return snapshot.data;
     // });
+
     firebase_document_outside1 =
         await Firestore.instance.collection('problems').getDocuments();
+        // tod instead use snapshot streams and listen everytime and  maeka list and update it....on every streamm13:23 growing dev CRUD parse jsonf rom list
+        // in streamBuilder we cannot setSTate(s) but inise a function using snapshot steram we can. 
+                cf.snapshots().listen((snapshot) {
+                  setState(()=>{
+                    all_documents = snapshot.documents // this wil give list of document.s 
 
-    print(firebase_document_outside1);
+                  });
+                  print("all documents from snapshot${all_documents}");
+                  // to do create marker from this list instead
+                });
+       
+
+        // await Firestore.instance.collection('problems').getDocuments();
+
+
+
+    // print(firebase_document_outside1);
     var list1 = firebase_document_outside1.documents;
     print(list1[0].data);
     // print("firebase_doudment outside 1");
     // print("list1 alll ${list1}");
-    list1.forEach((element) => {
+    list1.forEach((element,index) => {
           if (element.data['location_latitude'] != null)
             addMarker_again(
                 latitude: element.data['location_latitude'],
                 longitude: element.data['location_longitude'],
                 title: element.data["title"],
                 description: element.data["description"],
-                image_url: element.data['image_url']),
+                image_url: element.data['image_url'],
+                firebase_user_ID: element.data['user_ID'],
+                ),
         });
 
     // todo: get data and  via provider pass on to all child components. 
@@ -119,7 +139,7 @@ class _LoadMapState extends State<LoadMap> {
     });
   }
 
-  addMarker_again({latitude, longitude, title, description, image_url}) {
+  addMarker_again({latitude, longitude, title, description, image_url,firebase_user_ID}) {
     int id = Random().nextInt(100);
 
     setState(() {
@@ -133,6 +153,7 @@ class _LoadMapState extends State<LoadMap> {
             showTheBottomSheet(
                 context: this.context,
                 title: title,
+                user_ID: firebase_user_ID,
                 description: description,
                 image_url: image_url);
             //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
@@ -332,6 +353,7 @@ class _LoadMapState extends State<LoadMap> {
                     Text("include your phone number")
                   ],
                 ),
+                // todo show the images picked in dialog too.
                 RaisedButton(
                     onPressed: () {
                       // var selected_image = await ImagePicker().getImage(source: ImageSource.gallery);
@@ -367,8 +389,8 @@ class _LoadMapState extends State<LoadMap> {
                         String sub_id  = Random().nextInt(100000).toString();
                         String sub_id1 = new DateTime.now().millisecondsSinceEpoch.toString();
                         print(formattedDAte);
-                        String id ="${sub_id}${sub_id1}";
-                        print(id);
+                        String prob_id ="${sub_id}${sub_id1}";
+                        print(prob_id);
 
 
 
@@ -381,17 +403,18 @@ class _LoadMapState extends State<LoadMap> {
 
                       setState(() {
                         //todo  the user id shall match if the user wants to delecte teh thigs he added.
-                        // todo also save the current date time, the time of creation
-
+                        // tod also save the current date time, the time of creation
+                        //tod if no location saved but still save,, then use current location. 
                         to_be_saved = {
-                          "problem_id": id,
+                          "problem_id": prob_id,
                           "title": title.text,
                           "description": description.text,
-                          "location_latitude": problem_location_latitude,
-                          "location_longitude": problem_location_longitude,
+                          "location_latitude": problem_location_latitude==null?_currentPostion.latitude:problem_location_latitude ,
+                          "location_longitude": problem_location_longitude==null?_currentPostion.longitude:problem_location_longitude,
                           "phone_number": default_checkbox_value,
                           "image_url": uploaded_image_url,
                           "created_date":dateParse,
+                          "user_ID": widget.firebase_userId,
                         };
                         from_alert_dialog = 0;
                         title.text = "";
@@ -491,6 +514,19 @@ class _LoadMapState extends State<LoadMap> {
               onPressed: _myLocation,
             ),
           ),
+          Positioned(
+            bottom: 150,
+            right: 0,
+            child: RaisedButton(
+              child: Text('Mylo'),
+              onPressed:(){
+                print(
+                 all_documents[0].data
+                );
+                // print(all_documents);
+              }
+            ),
+          ),
 
           Positioned(
             child:
@@ -546,7 +582,7 @@ class _LoadMapState extends State<LoadMap> {
   }
 
   void showTheBottomSheet(
-      {BuildContext context, title, description, image_url}) {
+      {BuildContext context, title, description, image_url,user_ID}) {
     showModalBottomSheet(
         context: this.context,
         builder: (context) {
@@ -602,9 +638,23 @@ class _LoadMapState extends State<LoadMap> {
                 RaisedButton(
                     onPressed: () async {
                       // todo only those who added can delete photos. and ofc me...the boss
-                      StorageReference photRef = await FirebaseStorage.instance
+                      if(user_ID == widget.firebase_userId){
+                        StorageReference photRef = await FirebaseStorage.instance
                           .getReferenceFromUrl(image_url);
-                      await photRef.delete();
+                       await photRef.delete();
+                       // todo delete the document in firestore too.   21:36 CRUD growing dev
+                              //  CollectionReference collectionReference = Firestore.instance.collection("problems");
+                              //  QuerySnapshot querySnapshot = await collectionReference.getDocuments();
+                              //  querySnapshot.documents[0].reference.delete();
+                              //  querySnapshot.documents[0].reference.updateData({"newupdatedvalue":true});
+
+                       //todo update the image url in firestore too. 
+
+                      }
+                      else{
+                        print("user_id donot match..");
+                      }
+                      
                     },
                     child: Text("dlete image")),
                 Text('Images'),
