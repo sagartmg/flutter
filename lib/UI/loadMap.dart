@@ -16,6 +16,9 @@ import 'package:path/path.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class LoadMap extends StatefulWidget {
+  var user;
+  String firebase_userId;
+  LoadMap({this.user,this.firebase_userId});
   @override
   _LoadMapState createState() => _LoadMapState();
 }
@@ -66,6 +69,8 @@ class _LoadMapState extends State<LoadMap> {
                 description: element.data["description"],
                 image_url: element.data['image_url']),
         });
+
+    // todo: get data and  via provider pass on to all child components. 
   }
 
   @override
@@ -351,6 +356,22 @@ class _LoadMapState extends State<LoadMap> {
                       select_image != null
                           ? await uploadPic(context)
                           : print('slect imageis null bitch}');
+
+                      // find the current data
+                        var date = new DateTime.now().toString();
+                        var dateParse = DateTime.parse(date);
+                        print(dateParse);
+                        var formattedDAte = " :second${dateParse.second} -${dateParse.day} -${dateParse.month} -${dateParse.year} -${dateParse.timeZoneName}-";
+                        
+
+                        String sub_id  = Random().nextInt(100000).toString();
+                        String sub_id1 = new DateTime.now().millisecondsSinceEpoch.toString();
+                        print(formattedDAte);
+                        String id ="${sub_id}${sub_id1}";
+                        print(id);
+
+
+
                       //
                       // todo why snackbar aint working though builder aslos and scaffold also.
                       // Scaffold.of(context).showSnackBar(SnackBar(
@@ -360,14 +381,17 @@ class _LoadMapState extends State<LoadMap> {
 
                       setState(() {
                         //todo  the user id shall match if the user wants to delecte teh thigs he added.
+                        // todo also save the current date time, the time of creation
+
                         to_be_saved = {
-                          "userId": 12,
+                          "problem_id": id,
                           "title": title.text,
                           "description": description.text,
                           "location_latitude": problem_location_latitude,
                           "location_longitude": problem_location_longitude,
                           "phone_number": default_checkbox_value,
-                          "image_url": uploaded_image_url
+                          "image_url": uploaded_image_url,
+                          "created_date":dateParse,
                         };
                         from_alert_dialog = 0;
                         title.text = "";
