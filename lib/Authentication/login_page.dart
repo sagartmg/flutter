@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:maddat/Authentication/homePage.dart';
 import 'package:maddat/UI/loadMap.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import './landingPage.dart';
+
 
 // import 'firebase_uth/f';
 
@@ -71,16 +74,30 @@ class _LoginPageState extends State<LoginPage> {
       //login to firebase
       //todo how to get userID from firebase??
       FirebaseUser user;
-      final user_id = (await FirebaseAuth.instance.currentUser()).uid;
+      // final user_id = (await FirebaseAuth.instance.currentUser()).uid;
+      // final FirebaseUser 
+
       try {
         user = (await FirebaseAuth.instance
                 .signInWithEmailAndPassword(email: _email, password: _password))
             .user;
+        final user_id = user.uid;
+
+        SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+        sharedPreferences.setString("email",_email);
+
+        sharedPreferences.setString("userId",user_id);
+
+
+       
+        // FirebaseAuth.signOut().then((value) => null)
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) {
               return LoadMap(user: user,firebase_userId: user_id,);
+              // return LandingPage();
+
             },
           ),
         );

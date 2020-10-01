@@ -14,11 +14,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../Authentication/landingPage.dart';
 
 class LoadMap extends StatefulWidget {
   var user;
   String firebase_userId;
-  LoadMap({this.user,this.firebase_userId});
+  LoadMap({this.user, this.firebase_userId});
   @override
   _LoadMapState createState() => _LoadMapState();
 }
@@ -48,7 +51,7 @@ class _LoadMapState extends State<LoadMap> {
   CollectionReference cf = Firestore.instance.collection('problems');
   var firebase_document_outside1;
 // getting data from firestore.
-  List all_documents;
+  var all_documents;
 
   Future<dynamic> getData() async {
     // firebase_document_outside1 = await cf.get().then<dynamic>((DocumentSnapshot snapshot)async{
@@ -57,40 +60,43 @@ class _LoadMapState extends State<LoadMap> {
 
     firebase_document_outside1 =
         await Firestore.instance.collection('problems').getDocuments();
-        // tod instead use snapshot streams and listen everytime and  maeka list and update it....on every streamm13:23 growing dev CRUD parse jsonf rom list
-        // in streamBuilder we cannot setSTate(s) but inise a function using snapshot steram we can. 
-                cf.snapshots().listen((snapshot) {
-                  setState(()=>{
-                    all_documents = snapshot.documents // this wil give list of document.s 
+    // tod instead use snapshot streams and listen everytime and  maeka list and update it....on every streamm13:23 growing dev CRUD parse jsonf rom list
+    // in streamBuilder we cannot setSTate(s) but inise a function using snapshot steram we can.
+  
+    cf.snapshots().listen((snapshot) {
+      return
+      setState(() => {
+            all_documents =
+                snapshot.documents // this wil give list of document.s
+          });
+      print("all documents from snapshot${all_documents}");
+      // to do create marker from this list instead
+    });
 
-                  });
-                  print("all documents from snapshot${all_documents}");
-                  // to do create marker from this list instead
-                });
-       
-
-        // await Firestore.instance.collection('problems').getDocuments();
-
-
+    // await Firestore.instance.collection('problems').getDocuments();
 
     // print(firebase_document_outside1);
     var list1 = firebase_document_outside1.documents;
+
     print(list1[0].data);
     // print("firebase_doudment outside 1");
     // print("list1 alll ${list1}");
-    list1.forEach((element,index) => {
+    // list1.forEach((element,index) => {
+    
+
+    list1.forEach((element) => {
           if (element.data['location_latitude'] != null)
             addMarker_again(
-                latitude: element.data['location_latitude'],
-                longitude: element.data['location_longitude'],
-                title: element.data["title"],
-                description: element.data["description"],
-                image_url: element.data['image_url'],
-                firebase_user_ID: element.data['user_ID'],
-                ),
+              latitude: element.data['location_latitude'],
+              longitude: element.data['location_longitude'],
+              title: element.data["title"],
+              description: element.data["description"],
+              image_url: element.data['image_url'],
+              firebase_user_ID: element.data['user_ID'],
+            ),
         });
 
-    // todo: get data and  via provider pass on to all child components. 
+    // todo: get data and  via provider pass on to all child components.
   }
 
   @override
@@ -139,7 +145,8 @@ class _LoadMapState extends State<LoadMap> {
     });
   }
 
-  addMarker_again({latitude, longitude, title, description, image_url,firebase_user_ID}) {
+  addMarker_again(
+      {latitude, longitude, title, description, image_url, firebase_user_ID}) {
     int id = Random().nextInt(100);
 
     setState(() {
@@ -156,7 +163,7 @@ class _LoadMapState extends State<LoadMap> {
                 user_ID: firebase_user_ID,
                 description: description,
                 image_url: image_url);
-            //todo from bottom slider appper and option to delete and all and got to places for direction..info about who added it
+            //tod from bottom slider appper and option to delete and all and got to places for direction..info about who added it
           },
           markerId: MarkerId(id.toString())));
     });
@@ -380,19 +387,18 @@ class _LoadMapState extends State<LoadMap> {
                           : print('slect imageis null bitch}');
 
                       // find the current data
-                        var date = new DateTime.now().toString();
-                        var dateParse = DateTime.parse(date);
-                        print(dateParse);
-                        var formattedDAte = " :second${dateParse.second} -${dateParse.day} -${dateParse.month} -${dateParse.year} -${dateParse.timeZoneName}-";
-                        
+                      var date = new DateTime.now().toString();
+                      var dateParse = DateTime.parse(date);
+                      print(dateParse);
+                      var formattedDAte =
+                          " :second${dateParse.second} -${dateParse.day} -${dateParse.month} -${dateParse.year} -${dateParse.timeZoneName}-";
 
-                        String sub_id  = Random().nextInt(100000).toString();
-                        String sub_id1 = new DateTime.now().millisecondsSinceEpoch.toString();
-                        print(formattedDAte);
-                        String prob_id ="${sub_id}${sub_id1}";
-                        print(prob_id);
-
-
+                      String sub_id = Random().nextInt(100000).toString();
+                      String sub_id1 =
+                          new DateTime.now().millisecondsSinceEpoch.toString();
+                      print(formattedDAte);
+                      String prob_id = "${sub_id}${sub_id1}";
+                      print(prob_id);
 
                       //
                       // todo why snackbar aint working though builder aslos and scaffold also.
@@ -402,18 +408,23 @@ class _LoadMapState extends State<LoadMap> {
                       // ));
 
                       setState(() {
-                        //todo  the user id shall match if the user wants to delecte teh thigs he added.
+                        //tod the user id shall match if the user wants to delecte teh thigs he added.
                         // tod also save the current date time, the time of creation
-                        //tod if no location saved but still save,, then use current location. 
+                        //tod if no location saved but still save,, then use current location.
                         to_be_saved = {
                           "problem_id": prob_id,
                           "title": title.text,
                           "description": description.text,
-                          "location_latitude": problem_location_latitude==null?_currentPostion.latitude:problem_location_latitude ,
-                          "location_longitude": problem_location_longitude==null?_currentPostion.longitude:problem_location_longitude,
+                          "location_latitude": problem_location_latitude == null
+                              ? _currentPostion.latitude
+                              : problem_location_latitude,
+                          "location_longitude":
+                              problem_location_longitude == null
+                                  ? _currentPostion.longitude
+                                  : problem_location_longitude,
                           "phone_number": default_checkbox_value,
                           "image_url": uploaded_image_url,
-                          "created_date":dateParse,
+                          "created_date": dateParse,
                           "user_ID": widget.firebase_userId,
                         };
                         from_alert_dialog = 0;
@@ -515,39 +526,59 @@ class _LoadMapState extends State<LoadMap> {
             ),
           ),
           Positioned(
+            bottom: 200,
+            right: 0,
+            child: RaisedButton(
+                child: Text('signout'),
+                onPressed: () async {
+                  //for logout
+                  SharedPreferences sharedPreferences =
+                      await SharedPreferences.getInstance();
+                  sharedPreferences.remove("email");
+                  //firebase
+                  FirebaseAuth ins = FirebaseAuth.instance;
+                  ins.signOut().then((_) => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return LandingPage();
+                          },
+                        ),
+                      ));
+                }),
+          ),
+          Positioned(
             bottom: 150,
             right: 0,
             child: RaisedButton(
-              child: Text('Mylo'),
-              onPressed:(){
-                print(
-                 all_documents[0].data
-                );
-                // print(all_documents);
-              }
-            ),
+                child: Text('Mylo'),
+                onPressed: () {
+                  print(all_documents[0].data);
+                  // print(
+                  // firebase_document_outside1.documents[0].data);
+                  // print(all_documents);
+                }),
           ),
 
           Positioned(
-            child:
-                SizedBox(
-                  width: 100,
-                  child: TextField(
-                    controller: select_radius,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(hintText: "radius in KM"),
-                    onChanged: (string) {
-                      find_number_of_markers(5);
-                      setState(() {
-                        within_radius = int.parse(string);
-                        select_radius.text.isNotEmpty
-                            ? find_number_of_markers(within_radius)
-                            : find_number_of_markers(5);
-                      });
-                    },
-                  ),
-                ),
+            child: SizedBox(
+              width: 100,
+              child: TextField(
+                controller: select_radius,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(hintText: "radius in KM"),
+                onChanged: (string) {
+                  find_number_of_markers(5);
+                  setState(() {
+                    within_radius = int.parse(string);
+                    select_radius.text.isNotEmpty
+                        ? find_number_of_markers(within_radius)
+                        : find_number_of_markers(5);
+                  });
+                },
+              ),
             ),
+          ),
           Positioned(
             top: 100,
             child: select_radius.text.length == 0
@@ -582,7 +613,7 @@ class _LoadMapState extends State<LoadMap> {
   }
 
   void showTheBottomSheet(
-      {BuildContext context, title, description, image_url,user_ID}) {
+      {BuildContext context, title, description, image_url, user_ID}) {
     showModalBottomSheet(
         context: this.context,
         builder: (context) {
@@ -638,23 +669,22 @@ class _LoadMapState extends State<LoadMap> {
                 RaisedButton(
                     onPressed: () async {
                       // todo only those who added can delete photos. and ofc me...the boss
-                      if(user_ID == widget.firebase_userId){
-                        StorageReference photRef = await FirebaseStorage.instance
-                          .getReferenceFromUrl(image_url);
-                       await photRef.delete();
-                       // todo delete the document in firestore too.   21:36 CRUD growing dev
-                              //  CollectionReference collectionReference = Firestore.instance.collection("problems");
-                              //  QuerySnapshot querySnapshot = await collectionReference.getDocuments();
-                              //  querySnapshot.documents[0].reference.delete();
-                              //  querySnapshot.documents[0].reference.updateData({"newupdatedvalue":true});
+                      if (user_ID == widget.firebase_userId) {
+                        StorageReference photRef = await FirebaseStorage
+                            .instance
+                            .getReferenceFromUrl(image_url);
+                        await photRef.delete();
+                        // todo delete the document in firestore too.   21:36 CRUD growing dev
+                        //  CollectionReference collectionReference = Firestore.instance.collection("problems");
+                        //  QuerySnapshot querySnapshot = await collectionReference.getDocuments();
+                        //  querySnapshot.documents[0].reference.delete();
+                        //  querySnapshot.documents[0].reference.updateData({"newupdatedvalue":true});
 
-                       //todo update the image url in firestore too. 
+                        //todo update the image url in firestore too.
 
-                      }
-                      else{
+                      } else {
                         print("user_id donot match..");
                       }
-                      
                     },
                     child: Text("dlete image")),
                 Text('Images'),
